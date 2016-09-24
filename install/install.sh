@@ -159,16 +159,16 @@ step_7_jeedom_customization() {
 
 	rm /etc/apache2/conf-available/other-vhosts-access-log.conf > /dev/null 2>&1
 	rm /etc/apache2/conf-enabled/other-vhosts-access-log.conf > /dev/null 2>&1
-	for file in ` find / -name php.ini -type f`;do
+	for file in $(find / -name php.ini -type f); do
 		echo "Update php file ${file}"
 		sed -i 's/max_execution_time = 30/max_execution_time = 300/g' ${file} > /dev/null 2>&1
-	    sed -i 's/upload_max_filesize = 2M/upload_max_filesize = 1G/g' ${file} > /dev/null 2>&1
-	    sed -i 's/post_max_size = 8M/post_max_size = 1G/g' ${file} > /dev/null 2>&1
-	    sed -i 's/expose_php = On/expose_php = Off/g' ${file} > /dev/null 2>&1
-	    sed -i 's/;opcache.enable=0/opcache.enable=1/g' ${file} > /dev/null 2>&1
-	    sed -i 's/opcache.enable=0/opcache.enable=1/g' ${file} > /dev/null 2>&1
-	    sed -i 's/;opcache.enable_cli=0/opcache.enable_cli=1/g' ${file} > /dev/null 2>&1
-	    sed -i 's/opcache.enable_cli=0/opcache.enable_cli=1/g' ${file} > /dev/null 2>&1
+		sed -i 's/upload_max_filesize = 2M/upload_max_filesize = 1G/g' ${file} > /dev/null 2>&1
+		sed -i 's/post_max_size = 8M/post_max_size = 1G/g' ${file} > /dev/null 2>&1
+		sed -i 's/expose_php = On/expose_php = Off/g' ${file} > /dev/null 2>&1
+		sed -i 's/;opcache.enable=0/opcache.enable=1/g' ${file} > /dev/null 2>&1
+		sed -i 's/opcache.enable=0/opcache.enable=1/g' ${file} > /dev/null 2>&1
+		sed -i 's/;opcache.enable_cli=0/opcache.enable_cli=1/g' ${file} > /dev/null 2>&1
+		sed -i 's/opcache.enable_cli=0/opcache.enable_cli=1/g' ${file} > /dev/null 2>&1
 	done
 	a2dismod status
 	systemctl restart apache2 > /dev/null 2>&1
