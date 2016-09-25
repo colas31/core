@@ -43,10 +43,20 @@ step_1_upgrade() {
 step_2_mainpackage() {
 	echo "---------------------------------------------------------------------"
 	echo "${JAUNE}Start step_2_mainpackage${NORMAL}"
-	apt_install ntp ca-certificates unzip curl sudo cron apt-transport-https
+	apt_install ntp ca-certificates unzip curl sudo cron
+	apt-get -y install locate tar telnet wget logrotate fail2ban
+	apt-get -y install software-properties-common
+	apt-get -y install libexpat1 ssl-cert
+	apt-get -y install apt-transport-https
+	add-apt-repository non-free
+	apt-get update
+	apt-get -y install libav-tools
+	apt-get -y install libsox-fmt-mp3 sox libttspico-utils
 	apt-get -y install smbclient htop iotop vim iftop
 	apt-get -y install dos2unix
 	apt-get -y install ntpdate
+	apt-get -y install espeak 
+	apt-get -y install mbrola
 	apt-get -y install git
 	apt-get -y install python
 	apt-get -y install python-pip
@@ -159,18 +169,29 @@ step_7_jeedom_customization() {
 
 	rm /etc/apache2/conf-available/other-vhosts-access-log.conf > /dev/null 2>&1
 	rm /etc/apache2/conf-enabled/other-vhosts-access-log.conf > /dev/null 2>&1
+
+	a2dismod status
+	systemctl restart apache2 > /dev/null 2>&1
+	if [ $? -ne 0 ]; then
+		service apache2 restart
+		if [ $? -ne 0 ]; then
+    		echo "${ROUGE}Could not restart apache - abort${NORMAL}"
+    		exit 1
+  		fi
+  	fi
+
 	for file in $(find / -iname php.ini -type f); do
 		echo "Update php file ${file}"
 		sed -i 's/max_execution_time = 30/max_execution_time = 300/g' ${file} > /dev/null 2>&1
-		sed -i 's/upload_max_filesize = 2M/upload_max_filesize = 1G/g' ${file} > /dev/null 2>&1
-		sed -i 's/post_max_size = 8M/post_max_size = 1G/g' ${file} > /dev/null 2>&1
-		sed -i 's/expose_php = On/expose_php = Off/g' ${file} > /dev/null 2>&1
-		sed -i 's/;opcache.enable=0/opcache.enable=1/g' ${file} > /dev/null 2>&1
-		sed -i 's/opcache.enable=0/opcache.enable=1/g' ${file} > /dev/null 2>&1
-		sed -i 's/;opcache.enable_cli=0/opcache.enable_cli=1/g' ${file} > /dev/null 2>&1
-		sed -i 's/opcache.enable_cli=0/opcache.enable_cli=1/g' ${file} > /dev/null 2>&1
+	    sed -i 's/upload_max_filesize = 2M/upload_max_filesize = 1G/g' ${file} > /dev/null 2>&1
+	    sed -i 's/post_max_size = 8M/post_max_size = 1G/g' ${file} > /dev/null 2>&1
+	    sed -i 's/expose_php = On/expose_php = Off/g' ${file} > /dev/null 2>&1
+	    sed -i 's/;opcache.enable=0/opcache.enable=1/g' ${file} > /dev/null 2>&1
+	    sed -i 's/opcache.enable=0/opcache.enable=1/g' ${file} > /dev/null 2>&1
+	    sed -i 's/;opcache.enable_cli=0/opcache.enable_cli=1/g' ${file} > /dev/null 2>&1
+	    sed -i 's/opcache.enable_cli=0/opcache.enable_cli=1/g' ${file} > /dev/null 2>&1
 	done
-	a2dismod status
+
 	systemctl restart apache2 > /dev/null 2>&1
 	if [ $? -ne 0 ]; then
 		service apache2 restart
@@ -267,7 +288,13 @@ addon_1_openzwave(){
 
 distrib_1_spe(){
 	if [ -f /etc/armbian.txt ]; then
-		wget https://raw.githubusercontent.com/jeedom/core/beta/install/OS_specific/armbian/post-install.sh
+		wget https://raw.githubusercontent.com/jeedom/core/${version}/install/OS_specific/armbian/post-install.sh
+		chmod +x post-install.sh
+		./post-install.sh
+		rm post-install.sh
+	fi
+	if [ -f /usr/bin/raspi-config ]; then
+		wget https://raw.githubusercontent.com/jeedom/core/${version}/install/OS_specific/rpi/post-install.sh
 		chmod +x post-install.sh
 		./post-install.sh
 		rm post-install.sh
@@ -282,7 +309,7 @@ HTML_OUTPUT=0
 MYSQL_ROOT_PASSWD=$(cat /dev/urandom | tr -cd 'a-f0-9' | head -c 15)
 MYSQL_JEEDOM_PASSWD=$(cat /dev/urandom | tr -cd 'a-f0-9' | head -c 15)
 
-while getopts ":s:v:w:zhm:" opt; do
+while getopts ":s:v:w:z:h:m:" opt; do
   case $opt in
     s) STEP="$OPTARG"
     ;;
